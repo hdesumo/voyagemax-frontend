@@ -1,106 +1,65 @@
-// src/App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/auth/Login';
-import SuperAdminDashboard from './pages/superadmin/Dashboard';
-import AdminDashboard from './pages/admin/Dashboard';
-import DriverDashboard from './pages/driver/Dashboard';
-import PassengerDashboard from './pages/passenger/Dashboard';
-import AgencyDashboard from './pages/agency/Dashboard';
-import NotFound from './pages/NotFound';
-import Navbar from './components/Navbar';
-import ProtectedRoute from './components/ProtectedRoute';
-import { useAuth } from './contexts/AuthContext';
-import Loader from './components/Loader';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-function Layout({ children }) {
-  const location = useLocation();
-  const hideNavbar = ['/login'].includes(location.pathname);
-  return (
-    <>
-      {!hideNavbar && <Navbar />}
-      {children}
-    </>
-  );
-}
+import Navbar from './components/Navbar'; // ✅ ici
+import HomePage from './pages/HomePage';
+import NotFound from './pages/NotFound';
+import Unauthorized from './pages/Unauthorized';
+
+import LoginPassenger from './pages/auth/LoginPassenger';
+import RegisterPassenger from './pages/auth/RegisterPassenger';
+import LoginAdmin from './pages/auth/LoginAdmin';
+import LoginSuperAdmin from './pages/auth/LoginSuperAdmin';
+
+import DashboardPassenger from './pages/passenger/DashboardPassenger';
+import DashboardAdmin from './pages/admin/DashboardAdmin';
+import DashboardSuperAdmin from './pages/superadmin/DashboardSuperAdmin';
+
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
-  const { isLoading, isAuthenticated, role } = useAuth();
-
-  if (isLoading) return <Loader />;
-
-  const redirectToDashboard = () => {
-    switch (role) {
-      case 'superadmin':
-        return <Navigate to="/superadmin" />;
-      case 'admin':
-        return <Navigate to="/admin" />;
-      case 'driver':
-        return <Navigate to="/driver" />;
-      case 'passenger':
-        return <Navigate to="/passenger" />;
-      case 'agency':
-        return <Navigate to="/agency" />;
-      default:
-        return <Navigate to="/" />;
-    }
-  };
-
   return (
     <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={isAuthenticated ? redirectToDashboard() : <LoginPage />} />
+      <Navbar /> {/* ✅ ajout ici */}
+      <Routes>
+        <Route path="/" element={<HomePage />} />
 
-          <Route
-            path="/superadmin"
-            element={
-              <ProtectedRoute requiredRole="superadmin">
-                <SuperAdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute requiredRole="admin">
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/driver"
-            element={
-              <ProtectedRoute requiredRole="driver">
-                <DriverDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/passenger"
-            element={
-              <ProtectedRoute requiredRole="passenger">
-                <PassengerDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/agency"
-            element={
-              <ProtectedRoute requiredRole="agency">
-                <AgencyDashboard />
-              </ProtectedRoute>
-            }
-          />
+        {/* Auth */}
+        <Route path="/login/passenger" element={<LoginPassenger />} />
+        <Route path="/register/passenger" element={<RegisterPassenger />} />
+        <Route path="/login/admin" element={<LoginAdmin />} />
+        <Route path="/login/superadmin" element={<LoginSuperAdmin />} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Layout>
-      <ToastContainer position="top-right" autoClose={3000} />
+        {/* Dashboards protégés */}
+        <Route
+          path="/passenger"
+          element={
+            <ProtectedRoute allowedRoles={['passenger']}>
+              <DashboardPassenger />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <DashboardAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/superadmin"
+          element={
+            <ProtectedRoute allowedRoles={['superadmin']}>
+              <DashboardSuperAdmin />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallbacks */}
+        <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </Router>
   );
 }

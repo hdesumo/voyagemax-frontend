@@ -1,14 +1,28 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { isLoggedIn, getUserRole, logout } from '../utils/auth';
 
 const Navbar = () => {
-  const { logout, role } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
-    <nav>
-      <Link to="/">Accueil</Link>
-      {role && <button onClick={logout}>Déconnexion</button>}
+    <nav style={{ padding: '1rem', background: '#f0f0f0' }}>
+      <h2 style={{ display: 'inline-block', marginRight: '2rem' }}>🚍 VoyageMax</h2>
+
+      {isLoggedIn() ? (
+        <>
+          <span style={{ marginRight: '1rem' }}>
+            Connecté en tant que : <strong>{getUserRole()}</strong>
+          </span>
+          <button onClick={handleLogout}>Déconnexion</button>
+        </>
+      ) : (
+        <button onClick={() => navigate('/login/passenger')}>Connexion</button>
+      )}
     </nav>
   );
 };
